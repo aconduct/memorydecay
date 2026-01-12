@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerUp Academy - Memory Decay Model</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f4f7f6;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #3498db;
+            border-color: #3498db;
+        }
+
+        .nav-btn.active {
+            background: #3498db;
+            border-color: #3498db;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #2c3e50;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            color: white;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.85rem;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #3498db;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .load-text {
+            font-size: 0.8rem;
+            color: #bdc3c7;
+            font-style: italic;
+        }
+
+        .desmos-link {
+            font-size: 1.4rem;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: transform 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .desmos-link:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 5px auto;
+            padding: 10px 20px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: max-width 0.4s ease-in-out;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 18px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+
+        th:first-child,
+        td:first-child {
+            width: 30%;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .formula {
+            font-family: "Courier New", Courier, monospace;
+            background: #fff5f5;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #c0392b;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .highlight {
+            color: inherit; /* Changed to inherit for black color */
+            font-weight: bold;
+            /* Removed border-bottom for underline effect */
+        }
+
+        .explanation-text {
+            font-size: 1rem;
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+
+        .logic-note {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .tech-section {
+            scroll-margin-top: 110px;
+        }
+
+        .ref-list {
+            font-size: 0.95rem;
+            color: #34495e;
+            background: #fdfefe;
+            padding: 25px;
+            border-left: 5px solid #3498db;
+            margin-top: 40px;
+            line-height: 1.8;
+            border-radius: 0 8px 8px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.02);
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #2980b9;
+            margin-top: 25px;
+        }
+
+        .jump-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            color: #2c3e50;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 0 5px;
+        }
+
+        .jump-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .jump-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .graph-key h3 {
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        .graph-key ul {
+            font-size: 0.88rem;
+            line-height: 1.45;
+            padding-left: 30px;
+            margin-top: 0;
+        }
+        .comparison-grid {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: nowrap;
+            margin-top: 20px;
+            width: 1170px; /* (3 * 380px cards) + (2 * 15px gaps) */
+            margin: 0 auto; /* Center the grid container itself */
+        }
+        .comparison-card {
+            width: 380px; /* Fixed width for cards */
+            text-align: center;
+            max-width: 380px;
+        }
+        .comparison-card img {
+            width: 100%;
+            max-width: 380px;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        #comparison-graph.active .graph-main {
+            flex: 1 !important;
+            min-width: auto !important;
+        }
+        #comparison-graph.active .graph-container {
+            justify-content: center !important;
+        }
+        #comparison-graph.active {
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        /* New styles for Scientific Rationale two-column layout */
+        .rationale-headers {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 0 15px; /* Match padding of rationale-pair */
+        }
+        .rationale-headers h3 {
+            flex: 1;
+            text-align: center;
+            border-bottom: 2px solid #2980b9;
+            padding-bottom: 5px;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .rationale-pair {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px; /* Space between each pair */
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fdfdfd;
+        }
+
+        .psychology-content,
+        .biology-content {
+            flex: 1;
+        }
+
+        .psychology-content h4,
+        .biology-content h4 {
+            color: #34495e;
+            margin-top: 0; /* Remove top margin to align with content above */
+            margin-bottom: 10px;
+        }
+
+        .psychology-content p,
+        .biology-content p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+            </style>
+        </head>
+
+        <body>
+        <body>
+    <body>
+<body>
+
+    <header>
+        <div class="header-left">
+            <h1>PowerUp Academy - Memory Decay Model</h1>
+            <nav>
+                <button class="nav-btn active" onclick="showSection('parents', this)">Parents' Guide</button>
+                <button class="nav-btn" onclick="showSection('model', this)">📈 Model</button>
+                <button class="nav-btn" onclick="showSection('science', this)">Scientific Rationale</button>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="dropdown">
+                <button class="nav-btn" onclick="handleTechButtonClick(this)" style="font-size: 0.75rem; padding: 4px 8px;">Technical Manual</button>
+                <div id="techDropdown" class="dropdown-content">
+                    <a href="#student"
+                        onclick="event.preventDefault(); showSection('tech', this); scrollToSection('student')">1.
+                        Graph Profiles</a>
+                    <a href="#maths"
+                        onclick="event.preventDefault(); showSection('tech', this); scrollToSection('maths')">2.
+                        Maths Engine</a>
+                    <a href="#lines"
+                        onclick="event.preventDefault(); showSection('tech', this); scrollToSection('lines')">3.
+                        Graph Geometry</a>
+                    <a href="#labels"
+                        onclick="event.preventDefault(); showSection('tech', this); scrollToSection('labels')">4. UI
+                        Logic</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="model" class="section">
+
+            <p style="text-align: center; margin: 0; font-weight: bold;">
+                These graphs show how PowerUp Academy manages the "biology of memory."
+            </p>
+            <p style="text-align: center; margin: 5px 0 10px 0;">
+                The lines represent your child’s memory strength over time. Every time you see a "jump" back up to 100%, a Refresh has occurred, moving that skill deeper into long-term storage.
+            </p>
+
+            <div class="jump-menu" style="text-align: center; margin: 10px 0;">
+                <button class="jump-btn active" onclick="showGraph('support')">1. "Maths feels Hard" Path</button>
+                <button class="jump-btn" onclick="showGraph('steady')">2. "Maths feels OK" Path</button>
+                <button class="jump-btn" onclick="showGraph('natural')">"Maths feels Easy" Path</button>
+                <button class="jump-btn" onclick="showComparison()">4. Comparing Learning Journeys</button>
+            </div>
+
+            <div class="graph-container" style="display: flex; gap: 20px; flex-wrap: nowrap; align-items: flex-start;">
+                <div class="graph-main" style="flex: 0.9; min-width: 400px;">
+                    <div id="support-graph" class="graph-display">
+                        <img src="images/decay_graph_1.svg" alt="Support Path Graph" style="width: 100%; border: 1px solid #ccc; border-radius: 8px;">
+                    </div>
+                    <div id="steady-graph" class="graph-display" style="display: none;">
+                        <img src="images/decay_graph_2.svg" alt="Steady Path Graph" style="width: 100%; border: 1px solid #ccc; border-radius: 8px;">
+                    </div>
+                    <div id="natural-graph" class="graph-display" style="display: none;">
+                        <img src="images/decay_graph_3.svg" alt="Natural Path Graph" style="width: 100%; border: 1px solid #ccc; border-radius: 8px;">
+                    </div>
+                     <div id="comparison-graph" class="graph-display" style="display: none;">
+                        <div class="comparison-grid">
+                            <div class="comparison-card">
+                                <h4>1. "Maths feels Hard" Path</h4>
+                                <img src="images/decay_graph_1.svg" alt="Support Path Graph">
+                            </div>
+                            <div class="comparison-card">
+                                <h4>2. "Maths feels OK" Path</h4>
+                                <img src="images/decay_graph_2.svg" alt="Steady Path Graph">
+                            </div>
+                            <div class="comparison-card">
+                                <h4>3. "Maths feels Easy" Path</h4>
+                                <img src="images/decay_graph_3.svg" alt="Natural Path Graph">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="graph-key" style="flex: 1; min-width: 300px;">
+                    <div id="support-key-text" class="key-text">
+                        <p style="font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;"><strong>Who it’s for:</strong> Children who find maths tricky or need frequent reminders to keep a skill fresh. You will see the Refreshes happen closer together. This builds confidence by providing slightly more frequent practice, ensuring no "gaps" can form in their foundational skills</p>
+                    </div>
+                    <div id="steady-key-text" class="key-text" style="display: none;">
+                        <p style="font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;"><strong>Who it’s for:</strong> The standard pace for a child who doesn’t find maths hard, but doesn't find it easy either. The gaps between Refreshes grow at a balanced pace. It keeps skills strong and automatic without the schedule feeling overwhelming.</p>
+                    </div>
+                    <div id="natural-key-text" class="key-text" style="display: none;">
+                        <p style="font-size: 0.85rem; margin-top: 0; margin-bottom: 15px;"><strong>Who it’s for:</strong> Children with a natural ability to learn and retain new maths skills with little difficulty. The gaps between Refreshes are longer, and it take them one fewer Refreshes to reach the 52 day "maintenance cyle". This respects their strong maths memory so prevents boredom, and keeps them engaged.</p>
+                    </div>
+                    <h3>The Key: Understanding the Data</h3>
+                    <ul>
+                        <li><strong>The L Values (L0, L1, etc.):</strong> These curves represent the Lifespan or "stability" of the memory. The lower the L number, the steeper the curve, showing that the memory is fading quicker. Each time a student completes a Refresh, the L value increases, showing that the memory is becoming more stable and will last longer.</li>
+                        <li><strong>The R Values (R1, R2, etc.):</strong> This shows the Refresh interval, which is the length of time (in days) between the last and the next Refresh. Notice how this value gets bigger each time the skill is practised. This represents the skill moving from short-term memory into long-term memory.</li>
+                        <li><strong>The 75% "Brain Workout" Red Dashed Line:</strong> The time it takes for a Lifespan curve to hit this line is the optimal time to trigger a Refresh. This is the "Desirable Difficulty" level when a Refresh will be most effective to make the memory much more durable.</li>
+                        <li><strong>The 7-Day Safety Window:</strong> The flat line at the very start of every curve where memory stays at 100% while the skill "settles."</li>
+                        <li><strong>The Dashed Lines heading below The 75% line:</strong> These show the "Leaky Bucket" effect—what would happen if your child didn't do their Refresh. It demonstrates how quickly a skill might fade without our managed schedule.</li>
+                        <li><strong>The Dotted Lines to the right:</strong> These represent the need to occasionally revise to maintain the memory. They have the same Lifespan as the previous numbered L line (29 Days or 52 Days)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="parents" class="section active">
+            <h2>Parents’ Guide: Building Long-Term Maths Confidence</h2>
+
+            <h3>The Challenge: The "Leaky Bucket" Effect</h3>
+            <p>Many children work incredibly hard in school, mastering a new math skill only to have it fade by the
+                following month. This "Leaky Bucket" effect is a natural part of biology, but for a child at primary
+                school, it can be the difference between feeling "good at maths" and feeling left behind. If these gaps
+                aren't filled, they can create a shaky foundation as they head toward the end of Year 6.</p>
+            <p>At PowerUp Academy, we don't just provide random maths content; we manage the biology of memory. We make
+                sure your child works effectively with their brain, not against it.</p>
+
+            <h3>The Solution: Long-Term Memory Training</h3>
+            <p>We use a scientific method called Spaced Repetition to ensure maths skills are moved from short-term
+                memory into long-term storage. Our goal is to ensure that when your child reaches their Year 6 exams and
+                eventually moves to secondary school, their core maths skills are automatic and "locked in."</p>
+
+            <h3>How PowerUp Academy Works</h3>
+            <h4>1. The 7-Day Safety Window</h4>
+            <p>When a child learns a new skill, they usually have a "plateau" of perfect memory for about 7 days. Our
+                simulator respects this time, allowing the skill to settle before we check in.</p>
+
+            <h4>2. The 75% "Brain Workout"</h4>
+            <p>We trigger a review session when your child’s memory of a skill is at approximately 75%.</p>
+            <p><strong>Why not 100%?</strong> If a child reviews something they know perfectly, the memory of that
+                knowledge or skill doesn't strengthen very much.</p>
+            <p><strong>Why not 10%?</strong> If they wait until they've forgotten, they have to relearn from scratch,
+                which is frustrating. By reviewing at 75%, we provide a "desirable difficulty" level. This small
+                challenge forces the brain to strengthen the memory, making it much more durable for the long term.</p>
+
+            <h4>3. Expanding Success</h4>
+            <p>Each time your child successfully completes a "Refresh", the time until the next review gets longer
+                (usually 2.5 times longer). This means they waste less time studying the maths they already know, and
+                more time moving forward to new challenges.</p>
+
+            <h3>Choosing the Right Path for Your Child</h3>
+            <p>We don't believe in "smart" vs. "not smart." We simply look at how much confidence your child currently
+                has in maths and their natural ability to remember maths skills after learning them once:</p>
+            <ul>
+                <li><strong>1. "Maths feels Hard" Path:</strong> If your child finds maths tricky or needs
+                    frequent reminders to keep a skill fresh, this path schedules reviews closer together. This builds
+                    their confidence by giving them the slightly more frequent practice to make the knowledge stick.
+                </li>
+                <li><strong>2. "Maths feels OK" Path:</strong> The standard pace for a child who doesn't find maths hard but doesn't find it easy either. It
+                    provides a balanced refresh schedule that keeps skills strong without being overwhelming.</li>
+                <li><strong>3. "Maths feels Easy" Path:</strong> If your child seems to have a natural ability to learn and retain new maths skills, then this path allows for longer gaps between refreshes. This
+                    keeps them engaged and prevents boredom.</li>
+            </ul>
+
+            <h3>The Result: Mastery Without the Stress</h3>
+            <p>By following the PowerUp schedule, the learning experience for your child changes fundamentally:</p>
+            <ul>
+                <li><strong>Building Momentum:</strong> When a child knows they won't forget what they learned last
+                    month, they feel brave enough to tackle the next big challenge.</li>
+                <li><strong>Ending the Frustration:</strong> No more "I used to know this!" moments.</li>
+                <li><strong>Confidence Increases:</strong> Students walk into their tests and Year 6 exams knowing the information
+                    is "locked in."</li>
+                <li><strong>Study Time is Reduced:</strong> They stop wasting hours practising things they already know.
+                </li>
+                <li><strong>Long-Term Success:</strong> They don't just "pass the test"—they actually gain the knowledge
+                    they need for secondary school and beyond.</li>
+            </ul>
+            <p style="text-align: center;"><strong>Our mission is to replace the stress of "forgetting" with the pride of "knowing." By building these
+                long-term foundations now, PowerUp Academy will help propel your child along a journey of enjoying maths leading to success in Key Stage 2 SATS and a confident transition to secondary
+                school.</strong></p>
+        </div>
+        <div id="tech" class="section">
+            <div id="student" class="tech-section">
+                <h2>Section 1: Graph Profiles & Global Variables</h2>
+                <p>This section establishes the <strong>Initial Cognitive State</strong> of the learner. It allows the
+                    model to differentiate between various learning speeds and prior knowledge levels.</p>
+                <table>
+                    <tr>
+                        <th>Formula / Variable</th>
+                        <th>Detailed Explanation</th>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">i = [1..3]</span></td>
+                        <td><span class="explanation-text"><span class="highlight">The Ability Index:</span> This is the
+                                master control slider. It functions as a pointer for the model to determine which
+                                stability profile to apply. By switching between 1, 2, and 3, we simulate different
+                                student archetypes—from those struggling with new concepts to those with high existing
+                                subject mastery.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">S = Ls[i]</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Dynamic Stability Selector:</span>
+                                This formula uses list-indexing logic to assign the 'S' value. It ensures that when a
+                                user moves the 'i' slider, the variable 'S' updates instantly across all subsequent
+                                maths, effectively "re-calculating" the student's brain on the fly.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">Ls = [2, 4, 10]</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Baseline Stability Matrix:</span> A
+                                collection of constants representing the "half-life" of initial learning.
+                                <ul>
+                                    <li><strong>Value 2:</strong> Short-term focus (Weak Encoding).</li>
+                                    <li><strong>Value 4:</strong> Standard classroom retention (Average Encoding).</li>
+                                    <li><strong>Value 10:</strong> Expert-level scaffolding (Strong Encoding).</li>
+                                </ul>
+                            </span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="maths" class="tech-section">
+                <h2>Section 2: The Maths Engine (Internal Mechanics)</h2>
+                <p>These calculations drive the timing and intensity of the Spaced Repetition schedule.</p>
+                <table>
+                    <tr>
+                        <th>Formula</th>
+                        <th>Detailed Explanation</th>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">f = 2.5</span></td>
+                        <td><span class="explanation-text"><span class="highlight">The Efficiency Factor (f):</span>
+                                Also known as the "Easiness Factor" in algorithmic spacing. A value of 2.5 signifies
+                                that each successful retrieval session expands the next interval by 250%. This constant
+                                prevents the student from reviewing too frequently as knowledge enters long-term
+                                storage.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">M(a, b) = min(100, 100 * exp(-(a-7)/b))</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Master Decay Function:</span> The
+                                mathematical core. It utilizes an exponential decay model with a custom horizontal
+                                offset (-7). This creates a 7-day "Consolidation Plateau" where the student maintains
+                                100% retention before the biological "forgetting curve" takes effect.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">k = ln(100/75)</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Logarithmic Decay Constant:</span> A
+                                static value that normalizes the decay rate. It ensures that the curve always intersects
+                                the 75% threshold exactly when the calculated stability interval expires, making the
+                                "dots" and the "curves" perfectly synchronized.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">T1, T2, T3, T4</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Cumulative Temporal Points:</span>
+                                These variables calculate the absolute Day Number on the X-axis for each review. They
+                                are calculated by summing the previous review date with the new, expanded interval ($T_n
+                                = T_{n-1} + d_{n-1}$).</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="lines" class="tech-section">
+                <h2>Section 3: Graph Geometry & Visual Rendering</h2>
+                <p>This section defines how the lines are drawn and segmented to create the distinctive "Sawtooth"
+                    pattern of learning.</p>
+                <table>
+                    <tr>
+                        <th>Visual Element</th>
+                        <th>Detailed Explanation</th>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">{Tn < x < Tn+1}</span>
+                        </td>
+                        <td><span class="explanation-text"><span class="highlight">Piecewise Domain Restriction:</span>
+                                This logic "trims" the infinite curves. It restricts each specific decay curve to its
+                                own unique time window. This ensures that the graph color changes only when a review
+                                occurs, creating a clean, connected visual path.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">mod(x - Tm, W)</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Mastery Loop Function:</span>
+                                Utilizing the Modulo operator, this creates an infinite periodic function. Once a
+                                student reaches the Mastery Point ($T_m$), the graph repeats a specific decay segment
+                                every $W$ days, representing a state of permanent maintenance.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">Ghost Lines</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Theoretical Extrapolations:</span>
+                                These are the dashed lines that extend past the review points. They provide a
+                                "counter-factual" visual, showing exactly how fast a student would forget if they failed
+                                to perform a scheduled review.</span><span class="logic-note">Note: These use the same
+                                stability values but ignore the domain cuts.</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="labels" class="tech-section">
+                <h2>Section 4: User Interface & Label Calculations</h2>
+                <p>Logic dedicated to ensuring the information presented on the graph is readable and accurate.</p>
+                <table>
+                    <tr>
+                        <th>Logic Gate</th>
+                        <th>Detailed Explanation</th>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">floor(T_n - T_{n-1} + 0.5)</span></td>
+                        <td><span class="explanation-text"><span class="highlight">Integer Rounding:</span> Converts the
+                                floating-point maths of the decay constants into whole numbers. Adding 0.5 before the
+                                'floor' function ensures standard mathematical rounding to the nearest day, keeping
+                                labels like "14 Days" clean and intuitive.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">DRm = floor(T_m - {...} + 0.5)</span></td>
+                        <td><span class="explanation-text"><span class="highlight">The Gap Reconciliation:</span> A
+                                sophisticated conditional subtraction. It detects the student level ($i$) and decides
+                                whether to subtract $T_3$ or $T_4$ to find the final "Mastery Gap." This prevents
+                                "negative days" or "impossible gaps" when a student level skips a standard review
+                                phase.</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="formula">{i < 2.5 : T4}</span>
+                        </td>
+                        <td><span class="explanation-text"><span class="highlight">The Conditional Toggle:</span> A
+                                logic gate that removes the 4th Review Dot (R4) if the student level is set to 3. This
+                                reduces visual noise for advanced learners who advance to Mastery sooner than struggling
+                                learners.</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Scientific Rationale Section -->
+        <div id="science" class="section">
+            <h2>Scientific Rationale: Psychology Meets Biology</h2>
+            <p>The Power Up Academy model is founded on rigorous cognitive science. Here we explore the synergy between psychological principles of learning and the underlying biological mechanisms of memory formation and retention.</p>
+
+            <div class="rationale-headers">
+                <h3 class="psychology-header">Psychology</h3>
+                <h3 class="biology-header">Biology</h3>
+            </div>
+
+            <!-- Rationale Pair 1 -->
+            <div class="rationale-pair">
+                <div class="psychology-content">
+                    <h4>1. The Forgetting Curve & The Plateau</h4>
+                    <p>The <span class="highlight">Ebbinghaus Forgetting Curve</span> (1885) proves that memory loss is exponential. However, modern research into Memory Consolidation suggests that for complex, meaningful information, there is often a period of stability before decay begins. Our 7-day plateau reflects this "buffer" where neural connections remain momentarily robust before they are pruned. (Ebbinghaus, H. (1885))</p>
+                </div>
+                <div class="biology-content">
+                    <h4>Early-Phase LTP (Long-Term Potentiation)</h4>
+                    <p>This plateau corresponds to the initial sensitization of synapses. Receptors in the brain become temporarily more responsive, which allows the learner to access those memories easily for a brief period of time. At this stage, the brain has not physically, permanently changed; because that responsiveness will die away, so will the memory unless a physical change is made. (Bliss, T. V., & Collingridge, G. L. (1993))</p>
+                </div>
+            </div>
+
+            <!-- Rationale Pair 2 -->
+            <div class="rationale-pair">
+                <div class="psychology-content">
+                    <h4>2. The Spacing Effect</h4>
+                    <p>The <strong>Spacing Effect</strong> is the phenomenon where learning is greater when studying is spread out over time. Our growth factor (a multiplier of 2.5, meaning each successful review session expands the time until the next review by two and a half times) is modeled after the <strong>SM-2 Algorithm</strong>. This specific multiplier is the "Goldilocks" value: it is large enough to save the student's time, but small enough that they are still required to work hard to retrieve the data (The Testing Effect). (Wozniak, P. A. (1990))</p>
+                </div>
+                <div class="biology-content">
+                    <h4>Protein Synthesis & Transcription</h4>
+                    <p>Utilizing the spacing effect produces the most efficient synthesis of new proteins required to physically expand and strengthen the synapse. Spacing prevents "synaptic saturation," providing the brain with the necessary biological recovery time to build these physical bridges, thereby creating a more durable and efficient memory. (Kandel, E. R. (2001))</p>
+                </div>
+            </div>
+
+            <!-- Rationale Pair 3 -->
+            <div class="rationale-pair">
+                <div class="psychology-content">
+                    <h4>3. Desirable Difficulty (The 75% Rule)</h4>
+                    <p>Reviewing at 95% is too easy; it doesn't challenge the brain. Reviewing at 20% is too hard; it's just relearning. According to Robert Bjork's <strong>Desirable Difficulty</strong> theory, retrieval is most effective when the memory is somewhat fragile. The 75% threshold ensures that the student is performing a high-effort retrieval, which signals the brain to strengthen the synaptic connections permanently. (Bjork, R. A., & Bjork, E. L. (2011))</p>
+                </div>
+                <div class="biology-content">
+                    <h4>BDNF & Synaptic Consolidation</h4>
+                    <p>High-effort retrieval signals the brain to strengthen synaptic connections by triggering the release of Brain-Derived Neurotrophic Factor (BDNF). This is a critical protein that acts as a survival signal for neurons, encouraging the growth of new synaptic connections and the thickening of existing ones. (Kandel, E. R. (2001))</p>
+                </div>
+            </div>
+
+            <!-- Rationale Pair 4 -->
+            <div class="rationale-pair">
+                <div class="psychology-content">
+                    <h4>4. Scaffolding & The Three Paths</h4>
+                    <p>We offer three distinct paths (Maths feels Hard, Maths feels OK, and Maths feels Easy). Students who find a topic difficult require smaller refresh intervals to prevent memory decay. Those who find a topic "Easy" can handle longer intervals from the start because they are successfully integrating new data into strong existing foundations. (Sweller, J. (1988))</p>
+                </div>
+                <div class="biology-content">
+                    <h4>Resistance to Synaptic Pruning</h4>
+                    <p>The brain naturally eliminates weak connections via Microglia (specialized cells that remove under-utilized synaptic material). By adjusting the path, we ensure that microglia do not remove a new math skill before it has time to take root. Frequent activation on the "Hard" path protects these fragile new synapses. (Kandel, E. R. (2001))</p>
+                </div>
+            </div>
+
+            <!-- Rationale Pair 5 -->
+            <div class="rationale-pair">
+                <div class="psychology-content">
+                    <h4>5. Automated Retrieval Practice</h4>
+                    <p>Frequent active recall transitions knowledge from working memory into the long-term memory, ensuring higher success rates in future school years. Every "Refresh" makes the memory more durable and harder to lose. (Roediger, H. L., & Karpicke, J. D. (2006))</p>
+                </div>
+                <div class="biology-content">
+                    <h4>Myelination & Signal Velocity</h4>
+                    <p>Repeated activation of a specific neural pathway triggers Myelination—the wrapping of parts of the neurons in a fatty insulating sheath. This insulation increases the speed of electrical impulses by up to 100x, turning a slow thought process into instant, automatic fluency. (Bliss, T. V., & Collingridge, G. L. (1993))</p>
+                </div>
+            </div>
+
+
+            <div class="ref-list">
+                <strong>Key Academic & Biological References:</strong><br><br>
+                • <strong>Bjork, R. A., & Bjork, E. L. (2011).</strong> <i>Making things hard on yourself, but in a good way: Creating desirable difficulties.</i><br>
+                • <strong>Bliss, T. V., & Collingridge, G. L. (1993).</strong> <i>A synaptic model of memory: long-term potentiation in the hippocampus.</i><br>
+                • <strong>Ebbinghaus, H. (1885).</strong> <i>Memory: A Contribution to Experimental Psychology.</i><br>
+                • <strong>Kandel, E. R. (2001).</strong> <i>The Molecular Biology of Memory Storage: A Dialogue Between Genes and Synapses.</i><br>
+                • <strong>Roediger, H. L., & Karpicke, J. D. (2006).</strong> <i>Test-Enhanced Learning: Taking Memory Tests Improves Long-Term Retention.</i><br>
+                • <strong>Sweller, J. (1988).</strong> <i>Cognitive Load Theory, Learning Difficulty, and Instructional Design.</i><br>
+                • <strong>Wozniak, P. A. (1990).</strong> <i>Optimization of learning.</i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showGraph(pathName) {
+            // Hide all graphs and key-text divs
+            document.querySelectorAll('.graph-display').forEach(graph => {
+                graph.style.display = 'none';
+            });
+            document.querySelectorAll('.key-text').forEach(text => {
+                text.style.display = 'none';
+            });
+            // Deactivate all jump buttons
+            document.querySelectorAll('.jump-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show the selected graph, its corresponding text, and the key section
+            document.getElementById(pathName + '-graph').style.display = 'block';
+            const keyText = document.getElementById(pathName + '-key-text');
+            if(keyText) keyText.style.display = 'block';
+            document.querySelector('.graph-key').style.display = 'block';
+            
+            // Activate the selected button
+            const activeButton = document.querySelector(`.jump-btn[onclick="showGraph('${pathName}')"]`);
+            if(activeButton) activeButton.classList.add('active');
+        }
+
+        function showComparison() {
+            // Hide all graphs, key texts, and the key itself
+            document.querySelectorAll('.graph-display').forEach(graph => {
+                graph.style.display = 'none';
+            });
+            document.querySelectorAll('.key-text').forEach(text => {
+                text.style.display = 'none';
+            });
+            document.querySelector('.graph-key').style.display = 'none';
+
+            // Deactivate all jump buttons
+            document.querySelectorAll('.jump-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show the comparison graph
+            document.getElementById('comparison-graph').style.display = 'block';
+            document.getElementById('comparison-graph').classList.add('active');
+            
+            // Activate the comparison button
+            document.querySelector('.jump-btn[onclick="showComparison()"]').classList.add('active');
+        }
+
+        const techSubsections = ['student', 'maths', 'lines', 'labels'];
+
+        function showSection(id, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            const container = document.querySelector('.container');
+            const isTechSubsection = techSubsections.includes(id);
+
+            if (id === 'model') {
+                container.style.maxWidth = '1600px';
+                document.body.style.overflow = 'hidden'; // Lock scrolling
+            } else {
+                container.style.maxWidth = '1200px';
+                document.body.style.overflow = 'auto'; // Restore scrolling
+            }
+
+            if (id === 'tech' || isTechSubsection) {
+                document.getElementById('tech').classList.add('active');
+            } else {
+                document.getElementById(id).classList.add('active');
+            }
+
+            if (btn) {
+                // If the button is a dropdown item, activate the main dropdown button.
+                // Otherwise, activate the button that was clicked.
+                if (btn.parentElement.classList.contains('dropdown-content')) {
+                    btn.closest('.dropdown').querySelector('.nav-btn').classList.add('active');
+                } else {
+                    btn.classList.add('active');
+                }
+            }
+
+            // Reset scroll for standalone sections; sub-sections rely on anchor scrolling
+            if (!isTechSubsection && id !== 'tech') {
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function toggleDropdown() {
+            document.getElementById('techDropdown').classList.toggle('show');
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const headerOffset = 100;
+                const elementPosition = section.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+            document.getElementById('techDropdown').classList.remove('show');
+        }
+
+        function handleTechButtonClick(btn) {
+            showSection('tech', btn);
+            const headerOffset = 100;
+            const techSection = document.getElementById('tech');
+            const elementPosition = techSection.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({ top: elementPosition - headerOffset, behavior: 'smooth' });
+            document.getElementById('techDropdown').classList.remove('show');
+        }
+
+        // Close the dropdown if clicked outside
+        window.onclick = function (event) {
+            // Close dropdowns if clicking outside of a dropdown button
+            if (!event.target.matches('.nav-btn') || event.target.parentElement.classList.contains('dropdown')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Set the default view to the 'parents' section on page load.
+        document.addEventListener('DOMContentLoaded', function () {
+            showSection('parents', document.querySelector('button[onclick*="parents"]'));
+            // Set the initial graph view
+            showGraph('support');
+        });
+    </script>
+
+</body>
+
+</html>
